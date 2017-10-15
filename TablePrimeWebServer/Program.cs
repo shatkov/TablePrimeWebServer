@@ -48,7 +48,7 @@ namespace TablePrimeWebServer
             return CreateHtmlDocument(new StringBuilder(str));
         }
 
-        internal static string SendResponse(HttpListenerRequest request)
+        private static string SendResponse(HttpListenerRequest request)
         {
             if (request.QueryString.Count <= 1 ||
                 !long.TryParse(request.QueryString[0], out var min) ||

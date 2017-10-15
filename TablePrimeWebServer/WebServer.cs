@@ -7,7 +7,7 @@ using System.Threading;
 namespace TablePrimeWebServer
 {
     // Реализация сервера взята с https://codehosting.net/blog/BlogEngine/post/Simple-C-Web-Server
-    public class WebServer
+    internal class WebServer
     {
         private readonly HttpListener _listener = new HttpListener();
         private readonly Func<HttpListenerRequest, string> _responderMethod;
@@ -33,14 +33,14 @@ namespace TablePrimeWebServer
 
         internal void Run()
         {
-            ThreadPool.QueueUserWorkItem(o =>
+            ThreadPool.QueueUserWorkItem(async o =>
             {
                 WriteMessage("Webserver running...");
                 try
                 {
                     while (_listener.IsListening)
                     {
-                        ThreadPool.QueueUserWorkItem(c =>
+                        ThreadPool.QueueUserWorkItem(async c =>
                         {
                             var ctx = c as HttpListenerContext;
                             try
@@ -54,7 +54,7 @@ namespace TablePrimeWebServer
                                 var buf = Encoding.UTF8.GetBytes(rstr);
 
                                 ctx.Response.ContentLength64 = buf.Length;
-                                ctx.Response.OutputStream.Write(buf, 0, buf.Length);
+                                await ctx.Response.OutputStream.WriteAsync(buf, 0, buf.Length);
                             }
                             catch (Exception ex)
                             {
@@ -65,7 +65,7 @@ namespace TablePrimeWebServer
                                 // always close the stream
                                 ctx?.Response.OutputStream.Close();
                             }
-                        }, _listener.GetContext());
+                        }, await _listener.GetContextAsync());
                     }
                 }
                 catch (Exception ex)
