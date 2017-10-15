@@ -12,7 +12,7 @@ namespace TablePrimeWebServer
         private readonly HttpListener _listener = new HttpListener();
         private readonly Func<HttpListenerRequest, string> _responderMethod;
 
-        public WebServer(IReadOnlyCollection<string> prefixes, Func<HttpListenerRequest, string> method)
+        internal WebServer(IReadOnlyCollection<string> prefixes, Func<HttpListenerRequest, string> method)
         {
             if (!HttpListener.IsSupported)
                 throw new NotSupportedException("Needs Windows XP SP2, Server 2003 or later.");
@@ -28,14 +28,14 @@ namespace TablePrimeWebServer
             _listener.Start();
         }
 
-        public WebServer(Func<HttpListenerRequest, string> method, params string[] prefixes)
+        internal WebServer(Func<HttpListenerRequest, string> method, params string[] prefixes)
             : this(prefixes, method) { }
 
-        public void Run()
+        internal void Run()
         {
-            ThreadPool.QueueUserWorkItem((o) =>
+            ThreadPool.QueueUserWorkItem(o =>
             {
-                Console.WriteLine("Webserver running...");
+                WriteMessage("Webserver running...");
                 try
                 {
                     while (_listener.IsListening)
@@ -58,7 +58,7 @@ namespace TablePrimeWebServer
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine("Error: " + ex.Message);
+                                WriteError(ex.Message);
                             }
                             finally
                             {
@@ -70,15 +70,24 @@ namespace TablePrimeWebServer
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error: " + ex.Message);
+                    WriteError(ex.Message);
                 }
             });
         }
-
-        public void Stop()
+        internal void Stop()
         {
             _listener.Stop();
             _listener.Close();
+        }
+
+        private static void WriteError(string errorMessage)
+        {
+            Console.WriteLine("Error: " + errorMessage);
+        }
+
+        private static void WriteMessage(string errorMessage)
+        {
+            Console.WriteLine(errorMessage);
         }
     }
 }
